@@ -554,7 +554,8 @@ function createWindow() {
 
   // Handle external links - open all in external browser
   mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-    shell.openExternal(url);
+    const blocked = ['file:', 'javascript:', 'data:', 'about:'];
+    if (!blocked.some(s => url.toLowerCase().startsWith(s))) shell.openExternal(url);
     return { action: 'deny' };
   });
 
@@ -849,7 +850,8 @@ app.whenReady().then(async () => {
         };
       }
 
-      shell.openExternal(url);
+      const blocked = ['file:', 'javascript:', 'data:', 'about:'];
+      if (!blocked.some(s => url.toLowerCase().startsWith(s))) shell.openExternal(url);
       return { action: 'deny' };
     });
   });
