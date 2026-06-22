@@ -32,7 +32,7 @@ interface AIToolsContextType {
   getActiveInstance: () => ToolInstance | undefined;
   // New panel management methods
   moveInstanceToPanel: (instanceId: string, targetPanelId: number, position?: number) => void;
-  reorderTabInPanel: (panelId: number, fromIndex: number, toIndex: number) => void;
+  reorderTabInPanel: (panelId: number, activeId: string, overId: string) => void;
   setActivePanelTab: (panelId: number, instanceId: string) => void;
   setActivePanel: (panelId: number) => void;
   duplicateInstance: (instanceId: string, targetPanelId?: number) => void;
@@ -564,18 +564,22 @@ export const AIToolsProvider = ({ children }: { children: React.ReactNode }) => 
     setActivePanelTab(targetPanelId, instanceId);
   };
 
-  const reorderTabInPanel = (panelId: number, fromIndex: number, toIndex: number) => {
+  const reorderTabInPanel = (panelId: number, activeId: string, overId: string) => {
     setToolInstances(current => {
       const panelInstances = current
         .filter(inst => inst.panelId === panelId)
         .sort((a, b) => a.positionInPanel - b.positionInPanel);
 
-      const [movedInstance] = panelInstances.splice(fromIndex, 1);
-      panelInstances.splice(toIndex, 0, movedInstance);
+      const fromIndex = panelInstances.findIndex(inst => inst.id === activeId);
+      const toIndex = panelInstances.findIndex(inst => inst.id === overId);
 
-      const updatedPositions = new Map(
-        panelInstances.map((inst, index) => [inst.id, index])
-      );
+      if (fromIndex === -1 || toIndex === -1) return current;
+
+      const reordered = [...panelInstances];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+
+      const updatedPositions = new Map(reordered.map((inst, index) => [inst.id, index]));
 
       return current.map(inst => {
         if (inst.panelId === panelId) {
