@@ -168,16 +168,6 @@ class UpdateService {
     }
 
     try {
-      if (typeof window !== 'undefined' && (window as any).openExternal) {
-        console.log('Using global openExternal function');
-        (window as any).openExternal(this.GITHUB_RELEASES_URL);
-      }
-    } catch (e) {
-      console.warn('global openExternal failed, will try window.open', e);
-    }
-
-    try {
-      console.log('Attempting window.open fallback');
       window.open(this.GITHUB_RELEASES_URL, '_blank', 'noopener,noreferrer');
     } catch (e) {
       console.warn('window.open fallback failed', e);
