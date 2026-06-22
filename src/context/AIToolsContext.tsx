@@ -15,6 +15,7 @@ interface AIToolsContextType {
   addTool: (tool: AITool) => void;
   updateTool: (tool: AITool) => void;
   removeTool: (id: string) => void;
+  reorderTools: (fromIndex: number, toIndex: number) => void;
   selectTool: (tool: AITool, createNewInstance?: boolean) => void;
   setLayout: (layout: LayoutType) => void;
   closeToolInstance: (instanceId: string) => void;
@@ -219,6 +220,15 @@ export const AIToolsProvider = ({ children }: { children: React.ReactNode }) => 
       title: "Tool Removed",
       description: tool ? `${tool.name} has been removed.` : 'Tool has been removed.',
       duration: 3000
+    });
+  };
+
+  const reorderTools = (fromIndex: number, toIndex: number) => {
+    setTools(current => {
+      const reordered = [...current];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      return reordered;
     });
   };
 
@@ -748,6 +758,7 @@ export const AIToolsProvider = ({ children }: { children: React.ReactNode }) => 
     addTool,
     updateTool,
     removeTool,
+    reorderTools,
     selectTool,
     setLayout,
     closeToolInstance,
