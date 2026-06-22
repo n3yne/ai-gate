@@ -17,7 +17,6 @@ class UpdateService {
   private readonly GITHUB_API_URL = `https://api.github.com/repos/${this.GITHUB_REPO}/releases/latest`;
   private readonly GITHUB_RELEASES_URL = `https://github.com/${this.GITHUB_REPO}/releases`;
   private readonly GITHUB_RAW_BASE_URL = `https://raw.githubusercontent.com/${this.GITHUB_REPO}/main/release_notes`;
-  private readonly CHECK_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
   private checkTimer: NodeJS.Timeout | null = null;
 
 
