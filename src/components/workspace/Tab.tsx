@@ -93,7 +93,7 @@ export const Tab = ({ instance, tool, isActive, onClose, panelId, tabNumber }: T
       data-panel-id={panelId}
       data-active={isActive ? 'true' : 'false'}
       className={`
-        group relative flex items-center gap-2 px-3 py-2 min-w-[120px] max-w-[200px]
+        group relative flex items-center gap-2 px-3 py-2 flex-1 min-w-[80px] max-w-[200px]
         border-r border-border transition-all
         ${isActive
           ? 'bg-background text-foreground'

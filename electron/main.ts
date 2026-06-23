@@ -121,6 +121,8 @@ const isMediaPermission = (permission: string) => {
   return ['media', 'audioCapture', 'videoCapture', 'microphone', 'camera'].includes(permission);
 };
 
+const BLOCKED_OPEN_SCHEMES = ['file:', 'javascript:', 'data:', 'about:', 'blob:'];
+
 /** Returns the native macOS media types implied by an Electron permission request. */
 const getNativeMediaTypes = (permission: string, details: any): Array<'microphone' | 'camera'> => {
   const mediaTypes = new Set<'microphone' | 'camera'>();
@@ -179,6 +181,18 @@ const requestNativeMediaAccess = async (mediaTypes: Array<'microphone' | 'camera
 /** Configures persistent provider webviews to allow browser media prompts. */
 const configureProviderPermissions = (providerSession: any) => {
   providerSession.setPermissionCheckHandler((_webContents: any, permission: string, requestingOrigin: string, details: any) => {
+    if (permission.startsWith('clipboard')) {
+      const url = requestingOrigin || getPermissionRequestUrl(details);
+      if (permission === 'clipboard-read') {
+        // Read is sensitive: require a verifiable HTTPS origin so embedded third-party
+        // iframes with an empty or non-HTTP origin cannot silently read the clipboard.
+        return isHttpUrl(url);
+      }
+      // Write variants (clipboard-write, clipboard-sanitized-write): grant for HTTPS or
+      // empty origin (Electron webview quirk on some platforms). Session only serves
+      // user-configured HTTPS AI tool URLs so empty origin is safe to allow.
+      return url === '' || isHttpUrl(url);
+    }
     if (!isMediaPermission(permission)) return false;
 
     const requestUrl = requestingOrigin || getPermissionRequestUrl(details);
@@ -189,6 +203,11 @@ const configureProviderPermissions = (providerSession: any) => {
   });
 
   providerSession.setPermissionRequestHandler((_webContents: any, permission: string, callback: (granted: boolean) => void, details: any) => {
+    if (permission.startsWith('clipboard')) {
+      const url = getPermissionRequestUrl(details);
+      callback(permission === 'clipboard-read' ? isHttpUrl(url) : url === '' || isHttpUrl(url));
+      return;
+    }
     if (!isMediaPermission(permission)) {
       callback(false);
       return;
@@ -554,8 +573,7 @@ function createWindow() {
 
   // Handle external links - open all in external browser
   mainWindow.webContents.setWindowOpenHandler(({ url }: { url: string }) => {
-    const blocked = ['file:', 'javascript:', 'data:', 'about:'];
-    if (!blocked.some(s => url.toLowerCase().startsWith(s))) shell.openExternal(url);
+    if (!BLOCKED_OPEN_SCHEMES.some(s => url.toLowerCase().startsWith(s))) shell.openExternal(url);
     return { action: 'deny' };
   });
 
@@ -857,8 +875,7 @@ app.whenReady().then(async () => {
         };
       }
 
-      const blocked = ['file:', 'javascript:', 'data:', 'about:'];
-      if (!blocked.some(s => url.toLowerCase().startsWith(s))) shell.openExternal(url);
+      if (!BLOCKED_OPEN_SCHEMES.some(s => url.toLowerCase().startsWith(s))) shell.openExternal(url);
       return { action: 'deny' };
     });
   });

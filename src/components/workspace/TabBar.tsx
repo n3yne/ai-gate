@@ -61,7 +61,7 @@ export const TabBar = ({ panelId, instances, activeInstanceId }: TabBarProps) =>
   return (
     <div data-testid={`panel-${panelId}-tabbar`} className="flex items-center bg-secondary/20 border-b border-border">
       {/* Horizontal Scrollable Tab Container */}
-      <div className="flex-1 flex overflow-x-auto scrollbar-thin">
+      <div className="flex-1 flex overflow-x-auto scrollbar-thin min-w-0">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

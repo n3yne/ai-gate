@@ -22,7 +22,6 @@ import {
   verticalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import {
   ChevronLeft,
   ChevronRight,
@@ -129,7 +128,9 @@ const SortableToolItem = ({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: tool.id });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    // eslint-disable-next-line react/forbid-component-props -- dnd-kit requires runtime transform/transition as inline styles
+    // 2D translate avoids GPU compositing layer promotion that conflicts with Electron webviews
+    transform: transform ? `translate(${Math.round(transform.x)}px, ${Math.round(transform.y)}px)` : undefined,
     transition,
     opacity: isDragging ? 0.5 : 1,
     zIndex: isDragging ? 10 : undefined,
@@ -140,9 +141,11 @@ const SortableToolItem = ({
     <div
       ref={setNodeRef}
       style={style}
+      // Collapsed: whole item is draggable — both attributes and listeners on container
+      {...(isCollapsed ? { ...attributes, ...listeners } : {})}
       className={cn(
         "group relative flex items-center rounded-md hover:bg-muted/50 transition-colors duration-150",
-        isCollapsed ? "justify-center p-2" : "px-2 py-1.5",
+        isCollapsed ? "justify-center p-2 cursor-grab active:cursor-grabbing" : "px-2 py-1.5",
         isDragging && "bg-muted/50"
       )}
     >
@@ -155,15 +158,6 @@ const SortableToolItem = ({
         >
           <GripVertical className="h-3.5 w-3.5" />
         </div>
-      )}
-
-      {/* Collapsed: whole item is the drag handle */}
-      {isCollapsed && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute inset-0 cursor-grab active:cursor-grabbing"
-        />
       )}
 
       <Button
