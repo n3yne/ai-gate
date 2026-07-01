@@ -211,5 +211,8 @@
       "owner": "inulute",
       "repo": "ai-gate"
     }
+  },
+  "allowScripts": {
+    "electron@34.5.8": true
   }
 }
